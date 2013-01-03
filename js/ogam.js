@@ -5,7 +5,7 @@
                 return  typeof(pos) === "object" ? {X: pos.X * 32, Y: pos.Y * 32 } : {X: pos * 32, Y: y * 32 };
             },
             tile: function(pos, y) {
-                return typeof(pos) === "object" ? {X: pos.X / 32 | 0, Y: pos.Y / 32 | 0 } : {X: pos / 32 | 0, Y: y / 32 | 0 };
+                return typeof(pos) === "object" ? {X: (pos.X + 16) / 32 | 0, Y: (pos.Y + 16) / 32 | 0 } : {X: pos / 32 | 0, Y: y / 32 | 0 };
             },
             tileArgs: function(index, image, pos) {
                 var p = ogam.pixel(pos),
