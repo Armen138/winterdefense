@@ -1,4 +1,4 @@
-(function() {
+define(["raf", "simplex"], function(raf, SimplexNoise) {
     var ogam = {
             images: {},
             pixel: function(pos, y) {
@@ -114,16 +114,17 @@
         if(ogam.state) {
             ogam.state.run();
         }
-        requestAnimationFrame(ogam.run);
+
+        raf.requestAnimationFrame.call(window, ogam.run);
     };
 
     ogam.noiseMap = function(w, h, res, lvl) {
-        var map = [],
-            noise = new SimplexNoise();
+        var map = [];
+            //noise = new SimplexNoise();
         for(var x = 0; x < w; x++) {
             map[x] = [];
             for(var y = 0; y < h; y++) {
-                map[x][y] = parseInt((((noise.noise(x / res, y / res) + 1 )/ 2)  * lvl), 10);
+                map[x][y] = parseInt((((SimplexNoise.noise(x / res, y / res) + 1 )/ 2)  * lvl), 10);
             }
         }
         return map;
@@ -162,5 +163,6 @@
         return ogam;
     };
 
-    window.Ogam = constructor;
-}());
+    //window.Ogam = constructor;
+    return constructor();
+});

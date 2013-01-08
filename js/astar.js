@@ -1,4 +1,4 @@
-(function() {
+define(function() {
   function BinaryHeap(scoreFunction){
     this.content = [];
     this.scoreFunction = scoreFunction;
@@ -145,6 +145,8 @@
 
 
   var findPath = function(collisionMap, s, e) {
+      var start = Date.now(),
+          timeOut = 200;
       function getNeighbors(node) {
         function valid(x, y) {
           if (x >= 0 &&
@@ -182,6 +184,9 @@
       openList.push(start);
 
       while(openList.size() > 0) {
+        if(Date.now() - start > timeOut) {
+          return [];
+        }
         var currentNode = openList.pop();
         var neighbors = getNeighbors(currentNode);
         if(currentNode == end) {
@@ -220,7 +225,7 @@
       return [];
   };
 
-  window.astar = {
+  return {
     path: findPath
   };
-}());
+});
