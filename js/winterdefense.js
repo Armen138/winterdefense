@@ -1,10 +1,4 @@
-require.config = {
-    baseUrl: "js",
-    paths: {
-        "particlus": "../particlus"
-    }
-};
-require(["ogam", "astar", "audio", "effects", "../particlus/ParticleSystem"], function(ogam, astar, racket, effects) {
+require(["ogam", "astar", "audio", "effects", "../particlus/ParticleSystem"], function(ogam, astar, racket, effects, PS) {
     var TileMap = function(map, ogam) {
         var tileMap = [];
         function tilify (tile, map, except) {
@@ -241,6 +235,54 @@ require(["ogam", "astar", "audio", "effects", "../particlus/ParticleSystem"], fu
         out: {X: 24, Y: 9}
     };
 
+    function manhattan(pos1, pos2) {
+        return Math.abs(pos1.X - pos2.X) + Math.abs(pos1.Y - pos2.Y);
+    }
+
+    function Projectile(ogam, game, image, start, end, damage) {
+        var position = { X: start.X, Y: start.Y },
+            angle = 0,
+            msPerTile = 100,
+            airTime = manhattan(start, end) * 15,
+            startTime = Date.now(),
+            distance = { X: end.X - start.X, Y: end.Y - start.Y },
+            lastUpdate = 0,
+            trail = null,
+            projectile = {
+                update: function() {
+                    var now = Date.now(),
+                        diff = now - startTime;
+                    if(diff > (airTime / 3) && !trail) {
+                        trail = game.particles.add(new PS.ParticleSystem(effects("rocket")), position);
+                        trail.position = position;
+                    }
+                    position.X = start.X + (distance.X / airTime) * diff;
+                    position.Y = start.Y + (distance.Y / airTime) * diff;
+                    if(now > startTime + airTime) {
+                        trail.system.kill();
+
+                        for(var i = 0; i < game.creepers.length; i++) {
+                            if(game.creepers[i].distance(ogam.tile(position)) < 2) {
+                                //game.creepers[i].kill();
+                                game.creepers[i].hit(damage);
+                                game.particles.add(new PS.ParticleSystem(effects("explosion")), game.creepers[i].position);
+                            }
+                        }                        
+                    }
+                    return now < startTime + airTime;
+                },
+                draw: function() {
+                    ogam.context.save();                   
+                    ogam.context.translate(position.X, position.Y);
+                    ogam.context.rotate(angle);
+                    ogam.context.drawImage(image, 0, 0, 32, 32, -4, -4, 8, 8);
+                    ogam.context.restore();
+                }
+            }
+            //trail.position = position;
+        return projectile;
+    }
+
     function Creeper(ogam, image, collisionMap, hp) {
         var angle = 0,
             lastUpdate = 0,
@@ -250,6 +292,9 @@ require(["ogam", "astar", "audio", "effects", "../particlus/ParticleSystem"], fu
             position = level.in,
             tile = ogam.pixel(level.in),
             creep = {
+            get position() {
+                return position;
+            },
             distance: function(pos) {
                 var xdiff = Math.abs(pos.X - tile.X),
                     ydiff = Math.abs(pos.Y - tile.Y);
@@ -260,6 +305,12 @@ require(["ogam", "astar", "audio", "effects", "../particlus/ParticleSystem"], fu
             },
             draw: function() {
                 ogam.context.drawImage(image, position.X - 16, position.Y - (image.height - 16));
+            },
+            hit: function(damage) {
+                hp -= damage;
+            },
+            kill: function() {
+                hp = -1;
             },
             update: function() {
                 var now = Date.now(),
@@ -305,7 +356,7 @@ require(["ogam", "astar", "audio", "effects", "../particlus/ParticleSystem"], fu
         var angle = 0,
             lastUpdate = 0,
             dead = false,
-            loadTime = 500,
+            loadTime = 1500,
             range = 4,
             target = null,
             position = ogam.pixel(tile),
@@ -324,10 +375,6 @@ require(["ogam", "astar", "audio", "effects", "../particlus/ParticleSystem"], fu
             update: function() {
                 var now = Date.now(),
                     diff = now - lastUpdate;
-                if(diff > loadTime) {
-                    lastUpdate = now;
-                    //fire snowball
-                }
                 //take aim
                 for(var i = 0; i < game.creepers.length; i++) {
                     if(game.creepers[i].distance(tile) < range) {
@@ -336,6 +383,14 @@ require(["ogam", "astar", "audio", "effects", "../particlus/ParticleSystem"], fu
                 }
                 if(target) {
                     angle = target.angle(position);
+                    if(diff > loadTime) {
+                        lastUpdate = now;
+                        game.projectiles.push(Projectile(ogam, game, ogam.images.snowball, position, target.position, 10));
+                        //fire snowball
+                        console.log("fire");
+                        //console.log(position);
+
+                    }
                 }
                 return !dead;
             }
@@ -345,155 +400,177 @@ require(["ogam", "astar", "audio", "effects", "../particlus/ParticleSystem"], fu
         return tower;
     }
 
-    //window.addEventListener("load", function() {
-        var game = {
-                explosions: [],
-                lives: 10,
-                creepers: [],
-                towers: [],
-                init: function(){
-                    game.creepers = [];
-                    setInterval(function(){
-                        var c = Creeper(ogam, ogam.images.snowman, game.collisionMap, 10);
-                        c.on("escape", function() {
-                            game.lives--;
-                            game.killCreeper(c);
-                        });
-                        game.creepers.push(c);
 
-                    }, 1000);
-                    ogam.on("click", function(mouse) {
-                        var mouseTile = ogam.tile(mouse);
-                        var t = Tower(ogam, ogam.images.snowtower, mouseTile, game, 100);
-                        var path = astar.path(game.collisionMap, level.in, level.out);
-                        if(path.length > 0) {
-                            game.towers.push(t);
-                        } else {
-                            t.kill();
-                        }
-
-
-                        //test particles
-
-                        game.explosions.push({
-                            start: Date.now(),
-                            position: {X: mouse.X, Y: mouse.Y},
-                            system: new ParticleSystem(effects.smoke)
-                        });
-                        game.sound.explosion.play();
+    var game = {
+            explosions: [],
+            lives: 10,
+            creepers: [],
+            towers: [],
+            projectiles: [],
+            init: function(){
+                game.creepers = [];
+                setInterval(function(){
+                    var c = Creeper(ogam, ogam.images.snowman, game.collisionMap, 10);
+                    c.on("escape", function() {
+                        game.lives--;
+                        game.killCreeper(c);
                     });
-                },
-                killCreeper: function(creeper) {
-                    for(var i = game.creepers.length -1; i >= 0; --i) {
-                        if(game.creepers[i] === creeper) {
-                            return game.creepers.splice(i, 1);
-                        }
-                    }
-                },
-                clear: function(){},
-                run: function() {
-                    game.map.draw();
+                    game.creepers.push(c);
 
-                    for(var i = game.towers.length -1; i >= 0; --i) {
-                        if(game.towers[i].update()) {
-                            game.towers[i].draw();
-                        }
-                    }
-                    for(var i = game.creepers.length -1; i >= 0; --i) {
-                        if(game.creepers[i].update()) {
-                            game.creepers[i].draw();
-                        }
-                    }
-                    ogam.context.font = "35px Arial";
-                    ogam.context.fillStyle = "red";
-                    ogam.context.strokeStyle = "black";
-                    for(i = 0; i < game.lives; i++) {
-                        ogam.context.fillText("❤", 10 + i * 30, 30);
-                        ogam.context.strokeText("❤", 10 + i * 30, 30);
+                }, 1000);
+                ogam.on("click", function(mouse) {
+                    var mouseTile = ogam.tile(mouse);
+                    var t = Tower(ogam, ogam.images.snowtower, mouseTile, game, 100);
+                    var path = astar.path(game.collisionMap, level.in, level.out);
+                    if(path.length > 0) {
+                        game.towers.push(t);
+                    } else {
+                        t.kill();
                     }
 
-                    for(var i = game.explosions.length - 1; i >= 0 ; --i) {
-                        if(game.explosions[i].system.isDone()) {
-                            game.explosions.splice(i, 1);
-                        } else {
-                            game.explosions[i].system.draw(ogam.canvas, game.explosions[i].position.X, game.explosions[i].position.Y, 1000 / 24);
-                        }
+                    //game.particles.add(new PS.ParticleSystem(effects("explosion")), mouse);
+                    //game.sound.explosion.play();
+                });
+            },
+            killCreeper: function(creeper) {
+                for(var i = game.creepers.length -1; i >= 0; --i) {
+                    if(game.creepers[i] === creeper) {
+                        return game.creepers.splice(i, 1);
                     }
                 }
             },
-            menu = {
-                init: function(){
-                    var x = 450,
-                        y = 250;
-                    menu.items = [
-                        Button("play", ogam.images.button, {X: x, Y: y}, ogam).on("click", function() { ogam.state = game; }).on("over", function() { game.sound.select.play(); }),
-                        Button("credits", ogam.images.button, {X: x, Y: y + 70}, ogam).on("click", function() { ogam.state = credits;}).on("over", function() { game.sound.select.play(); })
-                    ];
-                },
-                clear: function(){
-                    for(var i = 0; i < menu.items.length; i++) {
-                        menu.items[i].clear();
-                    }
-                    delete menu.items;
-                },
-                run: function() {
-                    ogam.context.drawImage(ogam.images.background, 0, 0);
-                    for(var i = 0; i < menu.items.length; i++) {
-                        menu.items[i].draw();
+            clear: function(){},
+            run: function() {
+                game.map.draw();
+
+                for(var i = game.towers.length -1; i >= 0; --i) {
+                    if(game.towers[i].update()) {
+                        game.towers[i].draw();
                     }
                 }
+                for(var i = game.creepers.length -1; i >= 0; --i) {
+                    if(game.creepers[i].update()) {
+                        game.creepers[i].draw();
+                    } else {
+                        game.creepers.splice(i, 1);
+                    }
+                }
+                for(var i = game.projectiles.length -1; i >= 0; --i) {
+                    if(game.projectiles[i].update()) {
+                        game.projectiles[i].draw();
+                    } else {
+                        game.projectiles.splice(i, 1);
+                    }
+                }                
+                ogam.context.font = "35px Arial";
+                ogam.context.fillStyle = "red";
+                ogam.context.strokeStyle = "black";
+                for(i = 0; i < game.lives; i++) {
+                    ogam.context.fillText("❤", 10 + i * 30, 30);
+                    ogam.context.strokeText("❤", 10 + i * 30, 30);
+                }
+                game.particles.draw();
+            }
+        },
+        menu = {
+            init: function(){
+                var x = 450,
+                    y = 250;
+                menu.items = [
+                    Button("play", ogam.images.button, {X: x, Y: y}, ogam).on("click", function() { ogam.state = game; }).on("over", function() { game.sound.select.play(); }),
+                    Button("credits", ogam.images.button, {X: x, Y: y + 70}, ogam).on("click", function() { ogam.state = credits;}).on("over", function() { game.sound.select.play(); })
+                ];
             },
-            credits = {
-                back: function() {
-                    ogam.state = menu;
-                },
-                init: function() {
-                    ogam.on("click", credits.back);
-                },
-                clear: function() {
-                    ogam.remove("click", credits.back);
-                },
-                run: function() {
-                    ogam.context.drawImage(ogam.images.background, 0, 0);
-                    ogam.context.font = "20px Arial";
-                    ogam.context.fillStyle = "black";
-                    ogam.context.textAlign = "center";
-                    ogam.context.textBaseline = "middle";
-                    ogam.context.fillText("A #1GAM Game by @Armen138", 450, 250);
-                    ogam.context.fillText("Terrain tiles from lostgarden.com", 450, 300);
+            clear: function(){
+                for(var i = 0; i < menu.items.length; i++) {
+                    menu.items[i].clear();
                 }
-            };
-        ogam.loader.on("load", function() {
-            var map, valid = false;
-            while(!valid) {
-                map = ogam.noiseMap(25, 18, 20, 4);
-                game.collisionMap = (function() {
-                    var m = [];
-                    for(var x = 0; x < map.length; x++) {
-                        m[x] = [];
-                        for(var y = 0; y < map[0].length; y++) {
-                            m[x][y] = map[x][y] === 0 ? -1 : 0;
-                        }
-                    }
-                    return m;
-                }());
-                var path = astar.path(game.collisionMap, level.in, level.out);
-                if(path.length > 0) {
-                    valid = true;
+                delete menu.items;
+            },
+            run: function() {
+                ogam.context.drawImage(ogam.images.background, 0, 0);
+                for(var i = 0; i < menu.items.length; i++) {
+                    menu.items[i].draw();
                 }
             }
-            game.map = TileMap(map, ogam);
-            ogam.state = menu;
-        });
-        game.sound = {
-            "select": racket.create("audio/select.wav"),
-            "explosion": racket.create("audio/explosion.wav")
+        },
+        credits = {
+            back: function() {
+                ogam.state = menu;
+            },
+            init: function() {
+                ogam.on("click", credits.back);
+            },
+            clear: function() {
+                ogam.remove("click", credits.back);
+            },
+            run: function() {
+                ogam.context.drawImage(ogam.images.background, 0, 0);
+                ogam.context.font = "20px Arial";
+                ogam.context.fillStyle = "black";
+                ogam.context.textAlign = "center";
+                ogam.context.textBaseline = "middle";
+                ogam.context.fillText("A #1GAM Game by @Armen138", 450, 250);
+                ogam.context.fillText("Terrain tiles from lostgarden.com", 450, 300);
+            }
         };
-        ogam.loader.load({  "terrain" : "images/winterwonderland.png",
-                            "background": "images/menu.png",
-                            "button": "images/button.png",
-                            "snowman": "images/snowman.png",
-                            "snowball": "images/snowball32.png",
-                            "snowtower": "images/snowtower.png" });
-    //});
+    ogam.loader.on("load", function() {
+        var map, valid = false;
+        while(!valid) {
+            map = ogam.noiseMap(25, 18, 20, 4);
+            game.collisionMap = (function() {
+                var m = [];
+                for(var x = 0; x < map.length; x++) {
+                    m[x] = [];
+                    for(var y = 0; y < map[0].length; y++) {
+                        m[x][y] = map[x][y] === 0 ? -1 : 0;
+                    }
+                }
+                return m;
+            }());
+            var path = astar.path(game.collisionMap, level.in, level.out);
+            if(path.length > 0) {
+                valid = true;
+            }
+        }
+        game.map = TileMap(map, ogam);
+        ogam.state = menu;
+    });
+    game.particles = (function() {
+        var systems = [],
+            particleCanvas = document.createElement("canvas"),
+            particles = {
+            add: function(system, position) {
+                systems.push({
+                    position: {X: position.X, Y: position.Y},
+                    system: system
+                });
+                return systems[systems.length -1];
+            },
+            draw: function() {
+                particleCanvas.width = particleCanvas.width;
+                for(var i = systems.length -1; i >= 0; --i) {
+                    systems[i].system.draw(particleCanvas, systems[i].position.X, systems[i].position.Y, 17);
+                    if(systems[i].system.isDone()) {
+                        systems.splice(i, 1);
+                    }
+                }
+                ogam.context.drawImage(particleCanvas, 0, 0);
+            }
+        };
+        particleCanvas.width = ogam.canvas.width;
+        particleCanvas.height = ogam.canvas.height;
+        return particles;
+    }());
+    game.sound = {
+        "select": racket.create("audio/select.wav"),
+        "explosion": racket.create("audio/explosion.wav")
+    };
+    ogam.loader.load({  "terrain" : "images/winterwonderland.png",
+                        "background": "images/menu.png",
+                        "button": "images/button.png",
+                        "snowman": "images/snowman.png",
+                        "snowball": "images/snowball32.png",
+                        "snowtower": "images/snowtower.png" });
+
 });

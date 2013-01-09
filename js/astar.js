@@ -145,7 +145,7 @@ define(function() {
 
 
   var findPath = function(collisionMap, s, e) {
-      var start = Date.now(),
+      var startTime = Date.now(),
           timeOut = 200;
       function getNeighbors(node) {
         function valid(x, y) {
@@ -184,7 +184,7 @@ define(function() {
       openList.push(start);
 
       while(openList.size() > 0) {
-        if(Date.now() - start > timeOut) {
+        if(Date.now() - startTime > timeOut) {
           return [];
         }
         var currentNode = openList.pop();
