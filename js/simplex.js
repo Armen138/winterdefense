@@ -20,18 +20,23 @@
  // Inner class to speed upp gradient computations
 // (array access is a lot slower than member access)
 define(function(){
-  var grad = [{X: 1, Y: 1},{X: -1, Y: 1},{X: 1, Y: -1},{X: -1, Y: -1},
-               {X: 1, Y: 0},{X: -1, Y: 0},{X: 1, Y: 0},{X: -1, Y: 0},
-               {X: 0, Y: 1},{X: 0, Y: -1},{X: 0, Y: 1},{X: 0, Y: -1}],
-      p = [], perm = [], permMod12 = [], i,
-      F2 = 0.5*(Math.sqrt(3.0)-1.0),
-      G2 = (3.0-Math.sqrt(3.0))/6.0;
+  var grad, p, perm, permMod12, F2, G2;
+  function reseed() {
+    grad = [{X: 1, Y: 1},{X: -1, Y: 1},{X: 1, Y: -1},{X: -1, Y: -1},
+           {X: 1, Y: 0},{X: -1, Y: 0},{X: 1, Y: 0},{X: -1, Y: 0},
+           {X: 0, Y: 1},{X: 0, Y: -1},{X: 0, Y: 1},{X: 0, Y: -1}];
+    p = [];
+    perm = [];
+    permMod12 = [];
+    F2 = 0.5*(Math.sqrt(3.0)-1.0);
+    G2 = (3.0-Math.sqrt(3.0))/6.0;
 
-  // To remove the need for index wrapping, double the permutation table length
-  for(i = 0; i < 512; i++) {
-    p.push(Math.floor(Math.random() * 255));
-    perm.push(p[i & 255]);
-    permMod12.push(perm[i] % 12);
+    // To remove the need for index wrapping, double the permutation table length
+    for(var i = 0; i < 512; i++) {
+      p.push(Math.floor(Math.random() * 255));
+      perm.push(p[i & 255]);
+      permMod12.push(perm[i] % 12);
+    }
   }
 
   function dot(g, x, y) {
@@ -40,9 +45,11 @@ define(function(){
   function contrib(t, gi, x, y) {
     return  t < 0 ? 0 : Math.pow(t, 4) * dot(grad[gi], x, y);
   }
+  reseed();
   // 2D simplex noise
   return {
-    noise: function(xin, yin) {
+    reseed: reseed,
+    noise: function(xin, yin) {      
       // Skew the input space to determine which simplex cell we're in
       var s = (xin+yin)*F2, // Hairy factor for 2D
           i = (xin+s) | 0,

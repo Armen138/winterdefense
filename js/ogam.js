@@ -53,7 +53,9 @@ define(["raf", "simplex"], function(raf, SimplexNoise) {
                     fire: function(ev, obj) {
                         if(eventList[ev]) {
                             for(var i = 0; i < eventList[ev].length; i++) {
-                                eventList[ev][i](obj);
+                                if(eventList[ev][i](obj)) {
+                                    return;
+                                }
                             }
                         }
                     },
@@ -121,6 +123,7 @@ define(["raf", "simplex"], function(raf, SimplexNoise) {
     ogam.noiseMap = function(w, h, res, lvl) {
         var map = [];
             //noise = new SimplexNoise();
+        SimplexNoise.reseed();
         for(var x = 0; x < w; x++) {
             map[x] = [];
             for(var y = 0; y < h; y++) {
