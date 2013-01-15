@@ -35,12 +35,14 @@ function Creeper(ogam, game, def) {
     var angle = 0,
         lastUpdate = 0,
         dead = false,
+        frameWidth = 64,
         msPerTile = def.speed,//500,
         image = ogam.images[def.image],
         path = astar.path(game.collisionMap, level.in, level.out),
         position = level.in,
         tile = ogam.pixel(level.in),
-        maxFrame = (image.width / 32) - 1,
+        loopDirection = 1,
+        maxFrame = (image.width / frameWidth) - 1,
         frame = 0,
         lastFrame = 0,
         hp = def.hp,
@@ -59,7 +61,7 @@ function Creeper(ogam, game, def) {
             return Math.atan2((position.X - pos.X), (pos.Y - position.Y));
         },
         draw: function() {
-            ogam.context.drawImage(image, 0 + (frame * 32), 0, 32, image.height, position.X - 16, position.Y - (image.height - 16), 32 * def.scale, image.height * def.scale);
+            ogam.context.drawImage(image, 0 + (frame * frameWidth), 0, frameWidth, image.height, position.X - 16, position.Y - (image.height - 16), frameWidth * def.scale, image.height * def.scale);
         },
         hit: function(damage) {
             hp -= damage;
@@ -103,12 +105,12 @@ function Creeper(ogam, game, def) {
                 game.particles.add(new PS.ParticleSystem(effects("explosion")), creep.position);
                 dead = true;
             }
-            if(now - lastFrame > 100) {
-                frame++;    
+            if(now - lastFrame > 200) {
+                if(frame + loopDirection > maxFrame || frame + loopDirection < 0) {
+                    loopDirection = -loopDirection;
+                }                
+                frame += loopDirection;    
                 lastFrame = now;
-                if(frame > maxFrame) {
-                    frame = 0;
-                }
             }
             
             return !dead;

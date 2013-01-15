@@ -20,13 +20,14 @@ define(["projectile"], function(Projectile){
     function Tower(ogam, game, tile, def) {
         var angle = 0,            
             lastUpdate = 0,
+            frameCount = 72,
             dead = false,
             loadTime = def.loadTime || 400,
             range = def.range || 4,
             target = null,
             hp = def.hp || 100,
             image = ogam.images[def.image],
-            frameWidth = image.width / 17,
+            frameWidth = image.width / frameCount,
             position = ogam.pixel(tile),
             tower = {
             kill: function() {
@@ -35,17 +36,21 @@ define(["projectile"], function(Projectile){
             },
             draw: function() {
                 //frame = 0;
-                
+                /*
                 var deg = angle * (180 / Math.PI);
+                deg += 90;
                 if(deg < 0) { deg += 360; }
+                if(deg > 360) { deg -= 360; }
                 var fullCircle = 360;
-                var fraction = 17 / fullCircle;
-                var frame = (deg * fraction | 0);
+                var fraction = fullCircle / frameCount;
+                var frame = (deg / fraction | 0);
+                */
                 ogam.context.save();
                 ogam.context.translate(position.X, position.Y);
                 //console.log(frame);
-                //ogam.context.rotate(angle);
-                ogam.context.drawImage(image, frame * frameWidth, 0, frameWidth, image.height, -16, -16, frameWidth, image.height);
+                ogam.context.rotate(angle);
+                //ogam.context.drawImage(image, frame * frameWidth, 0, frameWidth, image.height, -32, -26, frameWidth, image.height);
+                ogam.context.drawImage(image, -16, -16);
                 ogam.context.restore();
             },
             update: function() {

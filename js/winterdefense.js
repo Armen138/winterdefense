@@ -405,6 +405,10 @@ require(["ogam", "astar", "audio", "effects", "creepers", "tower", "../particlus
                 paused.start = Date.now();
                 var x = 450,
                     y = 250;
+                paused.background = document.createElement("canvas");
+                paused.background.width = ogam.canvas.width;
+                paused.background.height = ogam.canvas.height;
+                paused.background.getContext("2d").drawImage(ogam.canvas, 0, 0);
                 paused.resume = Button("resume", ogam.images.button, {X: x, Y: y}, ogam).on("click", function() { ogam.state = game; }).on("over", function() { game.play("select"); });
             },
             clear: function() {
@@ -412,7 +416,7 @@ require(["ogam", "astar", "audio", "effects", "creepers", "tower", "../particlus
                 paused.resume.clear();
             },
             run: function() {
-                ogam.context.drawImage(ogam.images.background, 0, 0);
+                ogam.context.drawImage(paused.background, 0, 0);
                 paused.resume.draw();
             }
         },
@@ -576,9 +580,9 @@ require(["ogam", "astar", "audio", "effects", "creepers", "tower", "../particlus
                         "button_square": "images/button_tower.png",
                         "button_settings": "images/button_settings.png",
                         "snowman": "images/snowman.png",
-                        "snowmanhop": "images/snowman_animated.png",
+                        "snowmanhop": "images/snowman_animated2.png",
                         "snowball": "images/snowball32.png",
-                        "snowtower": "images/tower_16frames.png" });
+                        "snowtower": "images/snowtower.png" });
     window.addEventListener("blur", function() {
         ogam.state = paused;
     });
