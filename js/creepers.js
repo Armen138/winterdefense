@@ -61,7 +61,7 @@ function Creeper(ogam, game, def) {
             return Math.atan2((position.X - pos.X), (pos.Y - position.Y));
         },
         draw: function() {
-            ogam.context.drawImage(image, 0 + (frame * frameWidth), 0, frameWidth, image.height, position.X - 16, position.Y - (image.height - 16), frameWidth * def.scale, image.height * def.scale);
+            ogam.context.drawImage(image, 0 + (frame * frameWidth), 0, frameWidth, image.height, position.X - (frameWidth * def.scale) / 2, position.Y - ((image.height * def.scale) / 2), frameWidth * def.scale, image.height * def.scale);
         },
         hit: function(damage) {
             hp -= damage;

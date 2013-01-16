@@ -34,10 +34,14 @@ define(["raf", "simplex"], function(raf, SimplexNoise) {
         },
         set: function(newstate) {
             if(state) {
-                state.clear();
+                state.clear(function() {
+                    newstate.init();
+                    state = newstate;                    
+                });
+            } else {
+                newstate.init();
+                state = newstate;                
             }
-            newstate.init();
-            state = newstate;
         }
     });
 
