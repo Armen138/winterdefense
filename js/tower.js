@@ -1,4 +1,4 @@
-define(["projectile"], function(Projectile){
+define(["projectile", "context"], function(Projectile, Context){
     var definitions = {
         snowtower: {
             image: "snowtower",
@@ -6,30 +6,72 @@ define(["projectile"], function(Projectile){
             loadTime: 400,
             range: 4,
             ammo: "snowball",
-            speed: 1
+            speed: 1,
+            cost: 70
         },
         freezetower: {
             image: "snowtower",
             loadTime: 2000,
             range: 4,
             ammo: "snowball",
-            speed: 15
+            speed: 15,
+            cost: 100
         }
     };
 
     function Tower(ogam, game, tile, def) {
-        var angle = 0,            
+        var angle = 0,       
+            level = 1,     
             lastUpdate = 0,
             frameCount = 72,
             dead = false,
             loadTime = def.loadTime || 400,
             range = def.range || 4,
             target = null,
-            hp = def.hp || 100,
+            damage = def.damage || 30,
+            cost = def.cost || 70,
+            hp = def.hp || 100,            
             image = ogam.images[def.image],
             frameWidth = image.width / frameCount,
             position = ogam.pixel(tile),
+            context = Context(ogam.canvas, 0, "", position),
+            setTooltip = function() {                
+                context.tooltip = "Snowball thrower|level " + level+"|Next level: damage: " + (damage + ((level + 1) * 20));
+                context.tooltip += "|range: " + (range + 1);
+                context.tooltip += "|reload time: " + (loadTime - ((level + 1) * 10)) + "ms";
+                console.log("tooltip: " + context.tooltip);
+            },
             tower = {
+            cost: cost * 2, //upgrade is twice the price
+            levelUp: function() {
+                if(level > 2) {
+                    return;
+                }
+                level++;
+                cost *= 2;
+                range += level;
+                loadTime -= level * 10;
+                hp += level * 10;
+                damage += level * 20;                
+                setTooltip();
+            },
+            click: function(mouse) {
+                var s = (16 + (level * 16)) / 2;
+                if(!context.click(mouse)) {
+                    if (mouse.X > position.X - s &&
+                        mouse.X < position.X + s &&
+                        mouse.Y > position.Y - s &&
+                        mouse.Y < position.Y + s) {                 
+                        //tower.levelUp();
+                        tower.fire("click");
+                        context.open();
+                        return true;
+                    }                    
+                } else {
+                    return true;
+                }
+                return false;
+            },
             kill: function() {
                 dead = true;
                 game.collisionMap[tile.X][tile.Y] = 0;
@@ -50,8 +92,11 @@ define(["projectile"], function(Projectile){
                 //console.log(frame);
                 ogam.context.rotate(angle);
                 //ogam.context.drawImage(image, frame * frameWidth, 0, frameWidth, image.height, -32, -26, frameWidth, image.height);
-                ogam.context.drawImage(image, -16, -16);
+                //ogam.context.drawImage(image, -16, -16);
+                var s = 16 + level * 16;
+                ogam.context.drawImage(image, 0, 0, image.width, image.height, -(s / 2), -(s /2), s, s);
                 ogam.context.restore();
+                context.run();
             },
             update: function() {
                 var now = Date.now(),
@@ -66,7 +111,7 @@ define(["projectile"], function(Projectile){
                     angle = target.angle(position);
                     if(diff > loadTime) {
                         lastUpdate = now;
-                        game.projectiles.push(Projectile(ogam, game, ogam.images[def.ammo], position, target.position, 30, def.speed));
+                        game.projectiles.push(Projectile(ogam, game, ogam.images[def.ammo], position, target.position, damage, def.speed));
                         //fire snowball
                         console.log("fire");
                         //console.log(position);
@@ -78,6 +123,7 @@ define(["projectile"], function(Projectile){
         };
         game.collisionMap[tile.X][tile.Y] = -1;
         ogam.events.attach(tower);
+        setTooltip();
         return tower;
     }
     return {

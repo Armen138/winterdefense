@@ -1,25 +1,9 @@
-define(function() {
+define(["easing"], function(easing) {
     var color = "rgba(0, 0, 0, 0.7)",
         width = 300,
         buffer = 80,
-        duration = 500,
-        /* t=now b=start c=change d=duration*/
-        easing = function (t, b, c, d) {
-            /*
-            var ts=(t/=d)*t;
-            var tc=ts*t;
-            return b+c*(4*tc + -9*ts + 6*t);
-            */
-            if ((t/=d) < (1/2.75)) {
-                return c*(7.5625*t*t) + b;
-            } else if (t < (2/2.75)) {
-                return c*(7.5625*(t-=(1.5/2.75))*t + .75) + b;
-            } else if (t < (2.5/2.75)) {
-                return c*(7.5625*(t-=(2.25/2.75))*t + .9375) + b;
-            } else {
-                return c*(7.5625*(t-=(2.625/2.75))*t + .984375) + b;
-            }
-        };
+        duration = 500;
+
 
     function hit(index, pos) {
         var rect = {X: 10, Y: 10 + (index * 120), W: 280, H: 100};
