@@ -117,6 +117,7 @@ define(["raf", "simplex"], function(raf, SimplexNoise) {
 
     ogam.run = function() {
         ogam.canvas.width = ogam.canvas.width;
+        ogam.hud.width = ogam.hud.width;
         if(ogam.state) {
             ogam.state.run();
         }
@@ -142,6 +143,9 @@ define(["raf", "simplex"], function(raf, SimplexNoise) {
         ogam.canvas.width = 800;
         ogam.canvas.height = 567;
 
+        ogam.hud = document.createElement("canvas");
+        ogam.hud.width = ogam.canvas.width;
+        ogam.hud.height = ogam.canvas.height;
         ogam.position = (function() {
             var x = 0,
                 y = 0,

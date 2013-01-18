@@ -1,7 +1,7 @@
 define(["projectile", "context"], function(Projectile, Context){
     var definitions = {
         snowtower: {
-            image: "snowtower",
+            images: ["snowtower1", "snowtower2", "snowtower3"],
             hp: 100,
             loadTime: 400,
             range: 4,
@@ -10,7 +10,7 @@ define(["projectile", "context"], function(Projectile, Context){
             cost: 70
         },
         freezetower: {
-            image: "snowtower",
+            images: ["snowtower1", "snowtower2", "snowtower3"],
             loadTime: 2000,
             range: 4,
             ammo: "snowball",
@@ -31,14 +31,17 @@ define(["projectile", "context"], function(Projectile, Context){
             damage = def.damage || 30,
             cost = def.cost || 70,
             hp = def.hp || 100,            
-            image = ogam.images[def.image],
-            frameWidth = image.width / frameCount,
+            images = [ogam.images[def.images[0]],ogam.images[def.images[1]],ogam.images[def.images[2]]],
+            frameWidth = images[0].width / frameCount,
             position = ogam.pixel(tile),
-            context = Context(ogam.canvas, 0, "", position),
+            context = Context(ogam.hud, [{ label: "upgrade 199", icon: ogam.images.button_square, action: function() { tower.levelUp(); } }, { label: "sell 35", icon: ogam.images.restart }], "", position),
             setTooltip = function() {                
-                context.tooltip = "Snowball thrower|level " + level+"|Next level: damage: " + (damage + ((level + 1) * 20));
+                context.tooltip = "Snowball thrower|level " + level+"|Next level:|damage: " + (damage + ((level + 1) * 20));
                 context.tooltip += "|range: " + (range + 1);
                 context.tooltip += "|reload time: " + (loadTime - ((level + 1) * 10)) + "ms";
+                if(level === 3) {
+                    context.menu[0].disabled = true;    
+                }                
                 console.log("tooltip: " + context.tooltip);
             },
             tower = {
@@ -64,6 +67,7 @@ define(["projectile", "context"], function(Projectile, Context){
                         mouse.Y < position.Y + s) {                 
                         //tower.levelUp();
                         tower.fire("click");
+                        game.killContexts();
                         context.open();
                         return true;
                     }                    
@@ -71,6 +75,9 @@ define(["projectile", "context"], function(Projectile, Context){
                     return true;
                 }
                 return false;
+            },
+            killContext: function() {
+                context.close();
             },
             kill: function() {
                 dead = true;
@@ -93,8 +100,8 @@ define(["projectile", "context"], function(Projectile, Context){
                 ogam.context.rotate(angle);
                 //ogam.context.drawImage(image, frame * frameWidth, 0, frameWidth, image.height, -32, -26, frameWidth, image.height);
                 //ogam.context.drawImage(image, -16, -16);
-                var s = 16 + level * 16;
-                ogam.context.drawImage(image, 0, 0, image.width, image.height, -(s / 2), -(s /2), s, s);
+                var s = 64;//16 + level * 16;
+                ogam.context.drawImage(images[level-1], 0, 0, images[level-1].width, images[level-1].height, -(s / 2), -(s /2), s, s);
                 ogam.context.restore();
                 context.run();
             },

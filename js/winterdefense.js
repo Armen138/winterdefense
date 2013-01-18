@@ -387,18 +387,24 @@ require(["ogam", "astar", "audio", "effects", "creepers", "tower", "paused", "..
                     game.creeperDelay = 5000;
                 }                
             },
+            killContexts: function() {
+                for(var i = 0; i < game.towers.length; i++) {
+                    game.towers[i].killContext();
+                }
+            },
             click: function(mouse) {
                 var clicked = false;
                 for(var i = 0; i < game.towerbuttons.length; i++) {
                     clicked = game.towerbuttons[i].click(mouse);
                     if(clicked) break;
                 }
-                if(!clicked) {
+                //if(!clicked) {
                     for(var i = 0; i < game.towers.length; i++) {
-                        clicked = game.towers[i].click(mouse);
-                        if(clicked) break;
+                        var c = game.towers[i].click(mouse);
+                        clicked = clicked || c;
+                        //if(clicked) break;
                     }                    
-                }
+                //}
                 if(!clicked) {
                     game.build(mouse);
                 }                
@@ -417,9 +423,9 @@ require(["ogam", "astar", "audio", "effects", "creepers", "tower", "paused", "..
                 if(path.length > 0) {
                     game.towers.push(t);
                     game.credits -= 75;
-                    t.on("click", function() {
+                    /*t.on("click", function() {
                         t.levelUp();
-                    });
+                    });*/
                 } else {
                     t.kill();
                 }
@@ -516,6 +522,8 @@ require(["ogam", "astar", "audio", "effects", "creepers", "tower", "paused", "..
                 if(game.lives < 0) {
                     ogam.state = game.menus.gameover;
                 }
+
+                ogam.context.drawImage(ogam.hud, 0, 0);
             }
         },
 
@@ -648,7 +656,9 @@ require(["ogam", "astar", "audio", "effects", "creepers", "tower", "paused", "..
                         "snowman": "images/snowman.png",
                         "snowmanhop": "images/snowman_animated2.png",
                         "snowball": "images/snowball32.png",
-                        "snowtower": "images/snowtower.png",
+                        "snowtower1": "images/snowtowerlvl1.png",
+                        "snowtower2": "images/snowtowerlvl2.png",
+                        "snowtower3": "images/snowtower.png",
                         "restart": "images/restart.png",
                         "title": "images/title.png",
                         "snowflake": "images/snowflake.png",
