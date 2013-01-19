@@ -27,8 +27,8 @@ var definitions = {
 }
 
 var level = {
-    in: {X: 0, Y: 9},
-    out: {X: 24, Y: 9}
+    in: {X: 0, Y: 4},
+    out: {X: 12, Y: 4}
 };
 
 function Creeper(ogam, game, def) {
@@ -39,8 +39,8 @@ function Creeper(ogam, game, def) {
         msPerTile = def.speed,//500,
         image = ogam.images[def.image],
         path = astar.path(game.collisionMap, level.in, level.out),
-        position = level.in,
-        tile = ogam.pixel(level.in),
+        position = ogam.pixel(level.in),
+        tile = level.in,
         loopDirection = 1,
         maxFrame = (image.width / frameWidth) - 1,
         frame = 0,
@@ -60,7 +60,7 @@ function Creeper(ogam, game, def) {
         angle: function(pos) {
             return Math.atan2((position.X - pos.X), (pos.Y - position.Y));
         },
-        draw: function() {
+        draw: function() {            
             ogam.context.drawImage(image, 0 + (frame * frameWidth), 0, frameWidth, image.height, position.X - (frameWidth * def.scale) / 2, position.Y - ((image.height * def.scale) / 2), frameWidth * def.scale, image.height * def.scale);
         },
         hit: function(damage) {
@@ -85,8 +85,8 @@ function Creeper(ogam, game, def) {
                         yd = path[0].Y - tile.Y,
                         frac = diff / msPerTile;
                     position = ogam.pixel(tile);
-                    position.X += xd * 32 * frac;
-                    position.Y += yd * 32 * frac;
+                    position.X += xd * 64 * frac;
+                    position.Y += yd * 64 * frac;
 
                 }
             }

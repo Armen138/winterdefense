@@ -1,6 +1,6 @@
 define(["easing"], function(easing) {
 	var menuSize = {W: 150, H: 180},
-		duration = 1000;
+		duration = 600;
 
 	return function(canvas, menu, tooltip, desiredPosition) {		
 		var width = 0,
@@ -44,7 +44,7 @@ define(["easing"], function(easing) {
 				}
 			},
 			run: function() {
-				if(!active && width === 0) return;
+				if(!active && width === 0) return false;
 				
 				var now = Date.now() - start;
 				if(now < duration) {
@@ -95,6 +95,7 @@ define(["easing"], function(easing) {
 					}					
 				}
 				context.restore();
+				return true;
 			},
 			open: function() {
 				if(active) return;

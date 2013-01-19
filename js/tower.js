@@ -35,17 +35,18 @@ define(["projectile", "context"], function(Projectile, Context){
             frameWidth = images[0].width / frameCount,
             position = ogam.pixel(tile),
             context = Context(ogam.hud, [{ label: "upgrade 199", icon: ogam.images.button_square, action: function() { tower.levelUp(); } }, { label: "sell 35", icon: ogam.images.restart }], "", position),
-            setTooltip = function() {                
-                context.tooltip = "Snowball thrower|level " + level+"|Next level:|damage: " + (damage + ((level + 1) * 20));
-                context.tooltip += "|range: " + (range + 1);
-                context.tooltip += "|reload time: " + (loadTime - ((level + 1) * 10)) + "ms";
-                if(level === 3) {
-                    context.menu[0].disabled = true;    
-                }                
-                console.log("tooltip: " + context.tooltip);
-            },
             tower = {
             cost: cost * 2, //upgrade is twice the price
+            getTooltip: function() {                
+                var tooltip = "Snowball thrower|level " + level+"|Next level:|damage: " + (damage + ((level + 1) * 20));
+                tooltip += "|range: " + (range + 1);
+                tooltip += "|reload time: " + (loadTime - ((level + 1) * 10)) + "ms";
+                /*if(level === 3) {
+                    context.menu[0].disabled = true;    
+                } */               
+                //console.log("tooltip: " + context.tooltip);
+                return tooltip;
+            },            
             levelUp: function() {
                 if(level > 2) {
                     return;
@@ -56,7 +57,7 @@ define(["projectile", "context"], function(Projectile, Context){
                 loadTime -= level * 10;
                 hp += level * 10;
                 damage += level * 20;                
-                setTooltip();
+                //setTooltip();
             },
             click: function(mouse) {
                 var s = (16 + (level * 16)) / 2;
@@ -67,8 +68,8 @@ define(["projectile", "context"], function(Projectile, Context){
                         mouse.Y < position.Y + s) {                 
                         //tower.levelUp();
                         tower.fire("click");
-                        game.killContexts();
-                        context.open();
+                        //game.killContexts();
+                        //context.open();
                         return true;
                     }                    
                 } else {
@@ -130,7 +131,7 @@ define(["projectile", "context"], function(Projectile, Context){
         };
         game.collisionMap[tile.X][tile.Y] = -1;
         ogam.events.attach(tower);
-        setTooltip();
+        //setTooltip();
         return tower;
     }
     return {

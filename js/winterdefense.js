@@ -1,4 +1,4 @@
-require(["ogam", "astar", "audio", "effects", "creepers", "tower", "paused", "../particlus/ParticleSystem"], function(ogam, astar, racket, effects, creeps, towers, Paused, PS) {
+require(["ogam", "astar", "audio", "effects", "creepers", "tower", "paused", "context", "../particlus/ParticleSystem"], function(ogam, astar, racket, effects, creeps, towers, Paused, Context, PS) {
     var makeWaves = function() {
         return [
             [ 
@@ -181,8 +181,8 @@ require(["ogam", "astar", "audio", "effects", "creepers", "tower", "paused", "..
 
         cache.width = ogam.canvas.width;
         cache.height = ogam.canvas.height;
-        for(var x = 0; x < 25; x++) {
-            for(var y = 0; y < 18; y++) {
+        for(var x = 0; x < game.width; x++) {
+            for(var y = 0; y < game.height; y++) {
                 var pos = ogam.pixel(x, y);
                 cacheContext.drawImage.apply(cacheContext, ogam.tileArgs(tileMap[x][y], ogam.images.terrain, {X: x, Y: y}));
             }
@@ -255,8 +255,8 @@ require(["ogam", "astar", "audio", "effects", "creepers", "tower", "paused", "..
     };
 
     var level = {
-        in: {X: 0, Y: 9},
-        out: {X: 24, Y: 9}
+        in: {X: 0, Y: 4},
+        out: {X: 12, Y: 4}
     };
 
 
@@ -334,10 +334,13 @@ require(["ogam", "astar", "audio", "effects", "creepers", "tower", "paused", "..
         };
     }
     var game = {
+            width: 13,
+            height: 9,
             explosions: [],
             lives: 10,
             creepers: [],
             towers: [],
+            contexts: [],
             projectiles: [],
             credits: 200,
             lastSpawn: 0,
@@ -413,7 +416,7 @@ require(["ogam", "astar", "audio", "effects", "creepers", "tower", "paused", "..
                 var mouseTile = ogam.tile(ogam.mouse);
                 if ((game.credits < 75) ||
                     (game.tower === -1) ||
-                    (mouseTile.X < 25 && mouseTile.Y < 18 && mouseTile.X > 0 && mouseTile.Y > 0 && game.collisionMap[mouseTile.X][mouseTile.Y] !== 0)) {
+                    (mouseTile.X < game.width && mouseTile.Y < game.height && mouseTile.X > 0 && mouseTile.Y > 0 && game.collisionMap[mouseTile.X][mouseTile.Y] !== 0)) {
                     game.play("error");
                   return;  
                 } 
@@ -423,9 +426,14 @@ require(["ogam", "astar", "audio", "effects", "creepers", "tower", "paused", "..
                 if(path.length > 0) {
                     game.towers.push(t);
                     game.credits -= 75;
-                    /*t.on("click", function() {
-                        t.levelUp();
-                    });*/
+                    t.on("click", function() {
+                        //t.levelUp();
+                        //create context menu
+                        context = Context(ogam.hud, [{ label: "upgrade 199", icon: ogam.images.button_square, action: function() { t.levelUp(); } }, { label: "sell 35", icon: ogam.images.restart }], "", ogam.pixel(mouseTile));
+                        context.open();
+                        context.tooltip = t.getTooltip();
+                        game.contexts.push(context);
+                    });
                 } else {
                     t.kill();
                 }
@@ -500,15 +508,15 @@ require(["ogam", "astar", "audio", "effects", "creepers", "tower", "paused", "..
                 game.particles.draw();
 
                 var mouseTile = ogam.tile(ogam.mouse);
-                if(game.tower !== -1 && mouseTile.X < 25 && mouseTile.Y < 18 && mouseTile.X > 0 && mouseTile.Y > 0 && game.collisionMap[mouseTile.X][mouseTile.Y] !== 0) {
+                if(game.tower !== -1 && mouseTile.X <= game.width && mouseTile.Y <= game.height && mouseTile.X >= 0 && mouseTile.Y >= 0 && game.collisionMap[mouseTile.X][mouseTile.Y] !== 0) {
                     var tile = ogam.pixel(mouseTile);
                     ogam.context.fillStyle = "rgba(255, 0, 0, 0.4)";
-                    ogam.context.fillRect(tile.X - 16, tile.Y - 16, 32, 32);
+                    ogam.context.fillRect(tile.X - ogam.tileSize / 2, tile.Y - ogam.tileSize / 2, ogam.tileSize, ogam.tileSize);
                 } else {
-                    if(game.tower !== -1 && mouseTile.X < 25 && mouseTile.Y < 18 && mouseTile.X > 0 && mouseTile.Y > 0) {
+                    if(game.tower !== -1 && mouseTile.X <= game.width && mouseTile.Y <= game.height && mouseTile.X >= 0 && mouseTile.Y >= 0) {
                         var tile = ogam.pixel(mouseTile);
                         ogam.context.fillStyle = "rgba(0, 255, 0, 0.4)";
-                        ogam.context.fillRect(tile.X - 16, tile.Y - 16, 32, 32);                        
+                        ogam.context.fillRect(tile.X - ogam.tileSize / 2, tile.Y - ogam.tileSize / 2, ogam.tileSize, ogam.tileSize);                        
                     }
                 }
 
@@ -522,7 +530,12 @@ require(["ogam", "astar", "audio", "effects", "creepers", "tower", "paused", "..
                 if(game.lives < 0) {
                     ogam.state = game.menus.gameover;
                 }
-
+                for(var i = game.contexts.length - 1; i >= 0; --i) {
+                    if(!game.contexts[i].run()) {
+                        console.log("removing context");
+                        game.contexts.splice(i, 1);
+                    }
+                }
                 ogam.context.drawImage(ogam.hud, 0, 0);
             }
         },
@@ -587,7 +600,7 @@ require(["ogam", "astar", "audio", "effects", "creepers", "tower", "paused", "..
     ogam.loader.on("load", function() {
         var map, valid = false;
         function generateMap(callback) {
-            map = ogam.noiseMap(25, 18, 20, 4);
+            map = ogam.noiseMap(game.width, game.height, 20, 4);
             game.menus = Menus();
             game.collisionMap = (function() {
                 var m = [];
