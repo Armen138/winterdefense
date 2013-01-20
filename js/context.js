@@ -37,11 +37,12 @@ define(["easing"], function(easing) {
 						//hit
 						hitButtons(mouse);
 						return true;
-					} else {
+					} /*else {
 						box.close();
-					}
-					return false;
+					}	*/				
 				}
+				box.close();
+				return false;
 			},
 			run: function() {
 				if(!active && width === 0) return false;
@@ -85,7 +86,7 @@ define(["easing"], function(easing) {
 							}
 							if(box.menu[i].label) {
 								if(box.menu[i].disabled) {
-									context.fillStyle = "red";
+									context.fillStyle = "gray";
 								} else {
 									context.fillStyle = "white";
 								}
@@ -97,8 +98,9 @@ define(["easing"], function(easing) {
 				context.restore();
 				return true;
 			},
-			open: function() {
+			open: function() {				
 				if(active) return;
+				console.log("box open");
 				width = 0;
 				height = 0;
 				start = Date.now();

@@ -181,12 +181,14 @@ require(["ogam", "astar", "audio", "effects", "creepers", "tower", "paused", "co
 
         cache.width = ogam.canvas.width;
         cache.height = ogam.canvas.height;
+        /*
         for(var x = 0; x < game.width; x++) {
             for(var y = 0; y < game.height; y++) {
                 var pos = ogam.pixel(x, y);
                 cacheContext.drawImage.apply(cacheContext, ogam.tileArgs(tileMap[x][y], ogam.images.terrain, {X: x, Y: y}));
             }
-        }
+        }*/
+        cacheContext.drawImage(ogam.images.ice, 0, 0);
 
         var tMap = {
             draw: function() {
@@ -197,12 +199,53 @@ require(["ogam", "astar", "audio", "effects", "creepers", "tower", "paused", "co
         return tMap;
     };
 
-    var Button = function(text, image, pos, ogam) {
+    var Tooltip = function(text) {
+        var context = ogam.context;
+        
+        var tooltips = text.split("|");  
+        var size = {W: 0, H: tooltips.length * 16 + 20 };
+        context.font = "12px Arial";
+        for(var i = 0; i < tooltips.length; i++) {
+            var metrics = context.measureText(tooltips[i]);
+            if(metrics.width > size.W) {
+                size.W = metrics.width;
+            }
+        }
+        size.W += 20;
+        
+        var tooltip = {
+            draw: function() {
+                context.save();
+                context.fillStyle = "rgba(0, 0, 0, 0.7)";
+                context.strokeStyle = "black";
+                context.lineWidth = 2;
+                context.font = "bold 12px Arial";
+                context.translate(ogam.mouse.X - 20, 500 - size.H);
+                context.fillRect(0, 0, size.W, size.H);
+                context.strokeRect(0, 0, size.W, size.H);
+                    
+                context.fillStyle = "yellow";
+                context.textBaseline = "hanging";
+                context.textAlign = "left";
+                                
+                for(var i = 0; i < tooltips.length; i++) {
+                    context.fillText(tooltips[i], 10, 10 + i * 16); 
+                    context.fillStyle = "white";
+                    context.font = "12px Arial";
+                }                                   
+                context.restore();
+            }
+        }
+        return tooltip;
+    };
+
+    var Button = function(text, image, pos, ogam, tooltip) {
         var context = ogam.context;
         context.font = "30px Arial";
         var size = context.measureText(text);
         var realPos = {X: pos.X - image.width / 2, Y: pos.Y - image.height / 2};
         var hovering = false;
+        var tooltip = Tooltip(tooltip);
         function over() {
             return (ogam.mouse.X > realPos.X &&
                     ogam.mouse.X < realPos.X + image.width &&
@@ -225,6 +268,8 @@ require(["ogam", "astar", "audio", "effects", "creepers", "tower", "paused", "co
                 hovering = h;
                 if(!hovering) {
                     context.globalAlpha = 0.5;
+                } else {
+                    tooltip.draw();
                 }
                 context.font = "30px Arial";
                 context.fillStyle = "black";
@@ -270,16 +315,10 @@ require(["ogam", "astar", "audio", "effects", "creepers", "tower", "paused", "co
                         }
                     },
             mute = { 
-                        label: "Mute", 
+                        label: game.muted ? "Unmute" : "Mute", 
                         icon: ogam.images.sound,
                         action: function() {
-                            game.mute();
-                            if(mute.label === "Mute") {
-                                mute.label = "Unmute";    
-                            } else {
-                                mute.label = "Mute";
-                            }
-                            
+                            mute.label = game.mute() ? "Unmute" : "Mute";                            
                         }
                     };
 
@@ -357,8 +396,12 @@ require(["ogam", "astar", "audio", "effects", "creepers", "tower", "paused", "co
             mute: function() {
                 game.muted = !game.muted;
                 localStorage.mute = game.muted ? "1" : "0";
+                return game.muted;
             },
             restart: function() {
+                for(var i = 0; i < game.towers.length; i++) {
+                    game.towers[i].kill();
+                }
                 game.projectiles = [];
                 game.creepers = [];
                 game.credits = 200;
@@ -391,25 +434,35 @@ require(["ogam", "astar", "audio", "effects", "creepers", "tower", "paused", "co
                 }                
             },
             killContexts: function() {
-                for(var i = 0; i < game.towers.length; i++) {
-                    game.towers[i].killContext();
+                game.contexts = [];
+                /*
+                for(var i = 0; i < game.contexts.length; i++) {
+                    game.contexts[i].close();
+                }*/
+            },
+            clickables: function(mouse, clickables) {
+                var clicked = false,
+                    set = 0, item = 0;
+                while(!clicked) {
+                    if(set > clickables.length - 1) return false;
+                    if(clickables[set].length > 0) {                        
+                        clicked = clickables[set][item].click(mouse);
+                        item++;
+                        if(item > clickables[set].length - 1) {
+                            set++;
+                            item = 0;
+                        }                         
+                    } else {
+                        set++;
+                        item = 0;
+                    }
                 }
+                return true;
             },
             click: function(mouse) {
-                var clicked = false;
-                for(var i = 0; i < game.towerbuttons.length; i++) {
-                    clicked = game.towerbuttons[i].click(mouse);
-                    if(clicked) break;
-                }
-                //if(!clicked) {
-                    for(var i = 0; i < game.towers.length; i++) {
-                        var c = game.towers[i].click(mouse);
-                        clicked = clicked || c;
-                        //if(clicked) break;
-                    }                    
-                //}
-                if(!clicked) {
+                if(!game.clickables(mouse, [game.contexts, game.towerbuttons, game.towers])) {
                     game.build(mouse);
+                    game.tower = -1;
                 }                
             },
             build: function(mouse) {                
@@ -418,6 +471,7 @@ require(["ogam", "astar", "audio", "effects", "creepers", "tower", "paused", "co
                     (game.tower === -1) ||
                     (mouseTile.X < game.width && mouseTile.Y < game.height && mouseTile.X > 0 && mouseTile.Y > 0 && game.collisionMap[mouseTile.X][mouseTile.Y] !== 0)) {
                     game.play("error");
+                    game.tower = -1;
                   return;  
                 } 
                 var current = game.tower
@@ -429,9 +483,10 @@ require(["ogam", "astar", "audio", "effects", "creepers", "tower", "paused", "co
                     t.on("click", function() {
                         //t.levelUp();
                         //create context menu
-                        context = Context(ogam.hud, [{ label: "upgrade 199", icon: ogam.images.button_square, action: function() { t.levelUp(); } }, { label: "sell 35", icon: ogam.images.restart }], "", ogam.pixel(mouseTile));
+                        game.killContexts();
+                        var context = Context(ogam.hud, [{ disabled: t.level === 3, label: t.level === 3 ? "max level": "upgrade " + t.cost, icon: ogam.images.button_square, action: t.levelUp }, { label: "sell " + (t.cost / 2), icon: ogam.images.restart, action: t.sell }],  t.getTooltip(), ogam.pixel(mouseTile));
                         context.open();
-                        context.tooltip = t.getTooltip();
+                        //context.tooltip =;
                         game.contexts.push(context);
                     });
                 } else {
@@ -447,10 +502,10 @@ require(["ogam", "astar", "audio", "effects", "creepers", "tower", "paused", "co
                     game.lastSpawn = Date.now();
                 }
                 game.towerbuttons = [
-                    Button("", ogam.images.button_settings, {X: 42, Y: 540}, ogam).on("click", function() { ogam.state = game.menus.paused; }).on("over", function() { game.play("select"); }),
-                    Button("1", ogam.images.button_square, {X: 94, Y: 540}, ogam).on("click", function() { game.tower = "snowtower" }).on("over", function() { game.play("select"); }),
-                    Button("2", ogam.images.button_square, {X: 146, Y: 540}, ogam).on("click", function() { game.tower = "freezetower" }).on("over", function() { game.play("select"); }),
-                    Button("3", ogam.images.button_square, {X: 198, Y: 540}, ogam).on("click", function() { game.tower = "snowtower" }).on("over", function() { game.play("select"); })
+                    Button("", ogam.images.button_settings, {X: 42, Y: 540}, ogam, "Pause/Settings").on("click", function() { ogam.state = game.menus.paused; }).on("over", function() { game.play("select"); }),
+                    Button("1", ogam.images.button_square, {X: 94, Y: 540}, ogam, towers.definitions.tooltip("snowtower")).on("click", function() { game.tower = "snowtower" }).on("over", function() { game.play("select"); }),
+                    Button("2", ogam.images.button_square, {X: 146, Y: 540}, ogam, towers.definitions.tooltip("freezetower")).on("click", function() { game.tower = "freezetower" }).on("over", function() { game.play("select"); }),
+                    Button("3", ogam.images.button_square, {X: 198, Y: 540}, ogam, towers.definitions.tooltip("snowtower")).on("click", function() { game.tower = "snowtower" }).on("over", function() { game.play("select"); })
                 ];                
             },
             killCreeper: function(creeper) {
@@ -485,6 +540,8 @@ require(["ogam", "astar", "audio", "effects", "creepers", "tower", "paused", "co
                 for(var i = game.towers.length -1; i >= 0; --i) {
                     if(game.towers[i].update()) {
                         game.towers[i].draw();
+                    } else {
+                        game.towers.splice(i, 1);
                     }
                 }                
                 ogam.context.lineWidth = 2;   
@@ -571,7 +628,7 @@ require(["ogam", "astar", "audio", "effects", "creepers", "tower", "paused", "co
                 "Game icons from game-icons.net"
             ],
             back: function() {
-                ogam.state = menu;
+                ogam.state = game.menus.menu;
             },
             init: function() {
                 ogam.on("click", credits.back);
@@ -677,6 +734,7 @@ require(["ogam", "astar", "audio", "effects", "creepers", "tower", "paused", "co
                         "snowflake": "images/snowflake.png",
                         "scroll": "images/scroll.png",
                         "sound": "images/bugle-call.png",
+                        "ice": "images/ice.png",
                         "gameover": "images/gameover.png" });
 
     window.addEventListener("blur", function() {
