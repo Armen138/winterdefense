@@ -13,8 +13,58 @@ require(["ogam", "astar", "audio", "effects", "creepers", "tower", "paused", "co
                 "small", "small", "small", "big", "big", "big"
             ],
             [
-                "big", "big", "big", "boss", "boss"
-            ]
+                "big", "big", "big", "big", "big", "big","big", "big", "big","boss"
+            ],
+            [
+                "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", 
+                "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", "small",             
+                "small", "small", "small", "big", "big", "big"
+            ],
+            [
+                "big", "big", "big", "big", "big", "big","big", "big", "big","boss"
+            ],
+            [ 
+                "small", "small","small", "small","small", "small","small", "small","small", "small","small", "small","small", "small","small", "small"
+            ],
+            [
+                "big", "big", "big", "big", "big", "big", "big"
+            ],
+            [
+                "boss", "big", "big", "big", "big", "big", "big", "big", "small", "small", "small", "small", "small", "small", "small", "small", "small",
+                "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", "small",
+                "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", "small"
+            ],            
+            [
+                "boss", "boss", "boss", "boss", "boss"
+            ],
+            [
+                "boss", "big", "boss", "big",  "boss", "big",  "boss", "big",  "boss", "big"
+            ],
+            [ 
+                "small", "small","small", "small","small", "small","small", "small","small", "small","small", "small","small", "small","small", "small"
+            ],
+            [
+                "big", "big", "big", "big", "big", "big", "big"
+            ],
+            [
+                "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", 
+                "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", "small",             
+                "small", "small", "small", "big", "big", "big"
+            ],
+            [
+                "big", "big", "big", "big", "big", "big","big", "big", "big","boss"
+            ],
+            [
+                "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", 
+                "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", "small", "small",             
+                "small", "small", "small", "big", "big", "big"
+            ],
+            [
+                "big", "big", "big", "big", "big", "big","big", "big", "big","boss"
+            ],
+            [
+                "boss", "boss", "boss", "boss", "boss"
+            ]            
         ];
     };
 
@@ -181,14 +231,20 @@ require(["ogam", "astar", "audio", "effects", "creepers", "tower", "paused", "co
 
         cache.width = ogam.canvas.width;
         cache.height = ogam.canvas.height;
+        
         /*
         for(var x = 0; x < game.width; x++) {
             for(var y = 0; y < game.height; y++) {
                 var pos = ogam.pixel(x, y);
                 cacheContext.drawImage.apply(cacheContext, ogam.tileArgs(tileMap[x][y], ogam.images.terrain, {X: x, Y: y}));
             }
-        }*/
-        cacheContext.drawImage(ogam.images.ice, 0, 0);
+        }
+        */
+        var cm = [
+            [4, 3], [4, 4], [4, 5], [5, 3], [5, 4], [5, 5], [6, 3], [6, 4], [6, 5],
+            [10, 7], [10, 8], [11, 6], [11, 7], [11, 8], [12, 6], [12, 7], [12, 8]
+        ];
+        cacheContext.drawImage(ogam.images.terrain, 0, 0);
 
         var tMap = {
             draw: function() {
@@ -718,7 +774,7 @@ require(["ogam", "astar", "audio", "effects", "creepers", "tower", "paused", "co
         "shoot": racket.create("audio/shoot.wav"),
         "error": racket.create("audio/error.wav")
     };
-    ogam.loader.load({  "terrain" : "images/winterwonderland.png",
+    ogam.loader.load({  "terrain" : "images/winterwonderland4.png",
                         "background": "images/invasion.png",
                         "button": "images/button.png",
                         "button_square": "images/button_tower.png",

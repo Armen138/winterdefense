@@ -6,21 +6,22 @@ define(["raf", "simplex"], function(raf, SimplexNoise) {
                 return  typeof(pos) === "object" ? {X: pos.X * ogam.tileSize + ogam.tileSize / 2, Y: pos.Y * ogam.tileSize + ogam.tileSize / 2} : {X: pos * ogam.tileSize + ogam.tileSize / 2, Y: y * ogam.tileSize + ogam.tileSize / 2 };
             },
             pixel32: function(pos, y) {
-                return  typeof(pos) === "object" ? {X: pos.X * 32, Y: pos.Y * 32 } : {X: pos * 32, Y: y * 32 };
+                var tileSize = 64;
+                return  typeof(pos) === "object" ? {X: pos.X * tileSize, Y: pos.Y * tileSize } : {X: pos * tileSize, Y: y * tileSize };
             },            
             tile: function(pos, y) {
                 return typeof(pos) === "object" ? {X: (pos.X) / ogam.tileSize | 0, Y: (pos.Y) / ogam.tileSize | 0} : {X: pos / ogam.tileSize | 0, Y: y / ogam.tileSize | 0 };
             },
             tileArgs: function(index, image, pos) {
                 var p = ogam.pixel(pos),
-                    tilePos = ogam.pixel32({X: index % (image.width / 32), Y: index === 0 ? 0 : index / (image.width / 32) | 0 });
+                    tilePos = ogam.pixel32({X: index % (image.width / 64), Y: index === 0 ? 0 : index / (image.width / 64) | 0 });
 
                 return [
                     image,
                     tilePos.X,
                     tilePos.Y,
-                    32,
-                    32,
+                    64,
+                    64,
                     p.X - ogam.tileSize / 2,
                     p.Y - ogam.tileSize / 2,
                     ogam.tileSize,
