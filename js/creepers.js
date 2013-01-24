@@ -52,7 +52,14 @@ function Creeper(ogam, game, def) {
         },
         get dead() {
             return dead;
-        },            distance: function(pos) {
+        },
+        slowDown: function() {
+            msPerTile *= 2;
+            setTimeout(function() {
+                msPerTile = def.speed;
+            }, 1000);
+        },         
+        distance: function(pos) {
             var xdiff = Math.abs(pos.X - tile.X),
                 ydiff = Math.abs(pos.Y - tile.Y);
             return Math.sqrt(Math.pow(xdiff, 2) + Math.pow(ydiff, 2));
@@ -64,7 +71,12 @@ function Creeper(ogam, game, def) {
             ogam.context.drawImage(image, 0 + (frame * frameWidth), 0, frameWidth, image.height, position.X - (frameWidth * def.scale) / 2, position.Y - ((image.height * def.scale) / 2), frameWidth * def.scale, image.height * def.scale);
         },
         hit: function(damage) {
-            hp -= damage;
+            if(typeof(damage) === "number") {
+                hp -= damage;    
+            } else {
+                damage(creep);
+            }
+            
         },
         kill: function() {
             hp = -1;

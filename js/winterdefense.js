@@ -561,7 +561,7 @@ require(["ogam", "astar", "audio", "effects", "creepers", "tower", "paused", "co
                     Button("", ogam.images.button_settings, {X: 42, Y: 540}, ogam, "Pause/Settings").on("click", function() { ogam.state = game.menus.paused; }).on("over", function() { game.play("select"); }),
                     Button("1", ogam.images.button_square, {X: 94, Y: 540}, ogam, towers.definitions.tooltip("snowtower")).on("click", function() { game.tower = "snowtower" }).on("over", function() { game.play("select"); }),
                     Button("2", ogam.images.button_square, {X: 146, Y: 540}, ogam, towers.definitions.tooltip("freezetower")).on("click", function() { game.tower = "freezetower" }).on("over", function() { game.play("select"); }),
-                    Button("3", ogam.images.button_square, {X: 198, Y: 540}, ogam, towers.definitions.tooltip("snowtower")).on("click", function() { game.tower = "snowtower" }).on("over", function() { game.play("select"); })
+                    Button("3", ogam.images.button_square, {X: 198, Y: 540}, ogam, towers.definitions.tooltip("icetower")).on("click", function() { game.tower = "icetower" }).on("over", function() { game.play("select"); })
                 ];                
             },
             killCreeper: function(creeper) {

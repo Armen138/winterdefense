@@ -19,9 +19,21 @@ define(["projectile", "context"], function(Projectile, Context){
             range: 2,
             ammo: "snowball",
             speed: 3,
-            damage: 5,
+            damage: function(creep) { creep.slowDown(); },
             cost: 100,
             description: "Slows down enemy for 1sec"
+        },
+        icetower: {
+            name: "Ice artillery",
+            images: ["snowtower1", "snowtower2", "snowtower3"],
+            hp: 100,
+            loadTime: 600,
+            range: 3,
+            ammo: "snowball",
+            damage: 50,
+            speed: 1.5,
+            cost: 120,
+            description: "Hardened ice shells"
         },
         tooltip: function(def) {
             var tt = definitions[def].name;
