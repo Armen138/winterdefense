@@ -523,8 +523,8 @@ require(["ogam", "astar", "audio", "effects", "creepers", "tower", "paused", "co
             },
             build: function(mouse) {                
                 var mouseTile = ogam.tile(ogam.mouse);
-                if ((game.credits < 75) ||
-                    (game.tower === -1) ||
+                if ((game.tower === -1) ||
+                    (game.credits < towers.definitions[game.tower].cost) ||
                     (mouseTile.X < game.width && mouseTile.Y < game.height && mouseTile.X > 0 && mouseTile.Y > 0 && game.collisionMap[mouseTile.X][mouseTile.Y] !== 0)) {
                     game.play("error");
                     game.tower = -1;
@@ -535,7 +535,7 @@ require(["ogam", "astar", "audio", "effects", "creepers", "tower", "paused", "co
                 var path = astar.path(game.collisionMap, level.in, level.out);
                 if(path.length > 0) {
                     game.towers.push(t);
-                    game.credits -= 75;
+                    game.credits -= towers.definitions[current].cost;
                     t.on("click", function() {
                         //t.levelUp();
                         //create context menu
@@ -782,9 +782,9 @@ require(["ogam", "astar", "audio", "effects", "creepers", "tower", "paused", "co
                         "snowman": "images/snowman.png",
                         "snowmanhop": "images/snowman_animated2.png",
                         "snowball": "images/snowball32.png",
-                        "snowtower1": "images/snowtowerlvl1.png",
-                        "snowtower2": "images/snowtowerlvl2.png",
-                        "snowtower3": "images/snowtower.png",
+                        "snowtower1": "images/snowtower_px.png",
+                        "snowtower2": "images/snowtower_px2.png",
+                        "snowtower3": "images/snowtower_px3.png",
                         "restart": "images/restart.png",
                         "title": "images/title.png",
                         "snowflake": "images/snowflake.png",

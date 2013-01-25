@@ -7,9 +7,9 @@ define(["projectile", "context"], function(Projectile, Context){
             loadTime: 400,
             range: 2,
             ammo: "snowball",
-            damage: 30,
+            damage: 10,
             speed: 1,
-            cost: 70,
+            cost: 20,
             description: "Standard issue snowballs"
         },
         freezetower: {
@@ -20,7 +20,7 @@ define(["projectile", "context"], function(Projectile, Context){
             ammo: "snowball",
             speed: 3,
             damage: function(creep) { creep.slowDown(); },
-            cost: 100,
+            cost: 50,
             description: "Slows down enemy for 1sec"
         },
         icetower: {
