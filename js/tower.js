@@ -14,7 +14,7 @@ define(["projectile", "context"], function(Projectile, Context){
         },
         freezetower: {
             name: "Freeze",
-            images: ["snowtower1", "snowtower2", "snowtower3"],
+            images: ["freezetower1", "freezetower2", "freezetower3"],
             loadTime: 1000,
             range: 2,
             ammo: "snowball",

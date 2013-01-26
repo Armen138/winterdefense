@@ -187,7 +187,7 @@ require(["ogam", "astar", "audio", "effects", "creepers", "tower", "paused", "co
                         }
                     } else {
                         if(!tileMap[tx][ty]) {
-                            tileMap[tx][ty] = baseTile;
+                            tileMap[tx][ty] = baseTile + 13;
                         }
                     }
                 }
@@ -221,9 +221,9 @@ require(["ogam", "astar", "audio", "effects", "creepers", "tower", "paused", "co
             return map;
         }
         map = filter(map);
-        tilify(3, map, 2);
-        tilify(2, map, 1);
-        tilify(1, map, 0);
+        //tilify(3, map, 2);
+        //tilify(2, map, 1);
+        //tilify(1, map, 0);
         tilify(0, map, 0);
 
         var cache = document.createElement("canvas"),
@@ -232,20 +232,14 @@ require(["ogam", "astar", "audio", "effects", "creepers", "tower", "paused", "co
         cache.width = ogam.canvas.width;
         cache.height = ogam.canvas.height;
         
-        /*
+        
         for(var x = 0; x < game.width; x++) {
             for(var y = 0; y < game.height; y++) {
                 var pos = ogam.pixel(x, y);
                 cacheContext.drawImage.apply(cacheContext, ogam.tileArgs(tileMap[x][y], ogam.images.terrain, {X: x, Y: y}));
             }
         }
-        */
-        var cm = [
-            [4, 3], [4, 4], [4, 5], [5, 3], [5, 4], [5, 5], [6, 3], [6, 4], [6, 5],
-            [10, 7], [10, 8], [11, 6], [11, 7], [11, 8], [12, 6], [12, 7], [12, 8]
-        ];
-        cacheContext.drawImage(ogam.images.terrain, 0, 0);
-
+        
         var tMap = {
             draw: function() {
                 ogam.context.drawImage(cache, 0, 0);
@@ -356,8 +350,8 @@ require(["ogam", "astar", "audio", "effects", "creepers", "tower", "paused", "co
     };
 
     var level = {
-        in: {X: 0, Y: 4},
-        out: {X: 12, Y: 4}
+        in: {X: 0, Y: 9},
+        out: {X: 24, Y: 9}
     };
 
 
@@ -429,8 +423,8 @@ require(["ogam", "astar", "audio", "effects", "creepers", "tower", "paused", "co
         };
     }
     var game = {
-            width: 13,
-            height: 9,
+            width: 25,
+            height: 18,
             explosions: [],
             lives: 10,
             creepers: [],
@@ -621,7 +615,7 @@ require(["ogam", "astar", "audio", "effects", "creepers", "tower", "paused", "co
                 game.particles.draw();
 
                 var mouseTile = ogam.tile(ogam.mouse);
-                if(game.tower !== -1 && mouseTile.X <= game.width && mouseTile.Y <= game.height && mouseTile.X >= 0 && mouseTile.Y >= 0 && game.collisionMap[mouseTile.X][mouseTile.Y] !== 0) {
+                if(game.tower !== -1 && mouseTile.X < game.width && mouseTile.Y < game.height && mouseTile.X >= 0 && mouseTile.Y >= 0 && game.collisionMap[mouseTile.X][mouseTile.Y] !== 0) {
                     var tile = ogam.pixel(mouseTile);
                     ogam.context.fillStyle = "rgba(255, 0, 0, 0.4)";
                     ogam.context.fillRect(tile.X - ogam.tileSize / 2, tile.Y - ogam.tileSize / 2, ogam.tileSize, ogam.tileSize);
@@ -679,8 +673,7 @@ require(["ogam", "astar", "audio", "effects", "creepers", "tower", "paused", "co
         },        
         credits = {
             text: [
-                "A #1GAM game by @Armen138",
-                "Terrain tiles from lostgarden.com",
+                "A #1GAM game by @Armen138",                
                 "Game icons from game-icons.net"
             ],
             back: function() {
@@ -713,7 +706,7 @@ require(["ogam", "astar", "audio", "effects", "creepers", "tower", "paused", "co
     ogam.loader.on("load", function() {
         var map, valid = false;
         function generateMap(callback) {
-            map = ogam.noiseMap(game.width, game.height, 20, 4);
+            map = ogam.noiseMap(game.width, game.height, 20, 2);
             game.menus = Menus();
             game.collisionMap = (function() {
                 var m = [];
@@ -774,7 +767,7 @@ require(["ogam", "astar", "audio", "effects", "creepers", "tower", "paused", "co
         "shoot": racket.create("audio/shoot.wav"),
         "error": racket.create("audio/error.wav")
     };
-    ogam.loader.load({  "terrain" : "images/winterwonderland4.png",
+    ogam.loader.load({  "terrain" : "images/winterwonderland5.png",
                         "background": "images/invasion.png",
                         "button": "images/button.png",
                         "button_square": "images/button_tower.png",
@@ -785,6 +778,9 @@ require(["ogam", "astar", "audio", "effects", "creepers", "tower", "paused", "co
                         "snowtower1": "images/snowtower_px.png",
                         "snowtower2": "images/snowtower_px2.png",
                         "snowtower3": "images/snowtower_px3.png",
+                        "freezetower1": "images/freezetower.png",
+                        "freezetower2": "images/freezetower2.png",
+                        "freezetower3": "images/freezetower3.png",
                         "restart": "images/restart.png",
                         "title": "images/title.png",
                         "snowflake": "images/snowflake.png",

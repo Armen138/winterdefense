@@ -27,8 +27,8 @@ var definitions = {
 }
 
 var level = {
-    in: {X: 0, Y: 4},
-    out: {X: 12, Y: 4}
+    in: {X: 0, Y: 9},
+    out: {X: 24, Y: 9}
 };
 
 function Creeper(ogam, game, def) {
@@ -97,8 +97,8 @@ function Creeper(ogam, game, def) {
                         yd = path[0].Y - tile.Y,
                         frac = diff / msPerTile;
                     position = ogam.pixel(tile);
-                    position.X += xd * 64 * frac;
-                    position.Y += yd * 64 * frac;
+                    position.X += xd * 32 * frac;
+                    position.Y += yd * 32 * frac;
 
                 }
             }
