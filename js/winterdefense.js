@@ -773,7 +773,7 @@ require(["ogam", "astar", "audio", "effects", "creepers", "tower", "paused", "co
                         "button_square": "images/button_tower.png",
                         "button_settings": "images/button_settings.png",
                         "snowman": "images/snowman.png",
-                        "snowmanhop": "images/snowman_animated2.png",
+                        "snowmanhop": "images/snowman_px.png",
                         "snowball": "images/snowball32.png",
                         "snowtower1": "images/snowtower_px.png",
                         "snowtower2": "images/snowtower_px2.png",
